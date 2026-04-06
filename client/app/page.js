@@ -18,7 +18,7 @@ export default function HomePage() {
     const token = localStorage.getItem('dg_token');
     if (token) {
       getMe()
-        .then(() => router.push('/connections'))
+        .then(() => router.push('/dashboard'))
         .catch(() => localStorage.removeItem('dg_token'))
         .finally(() => setCheckingAuth(false));
     } else {
@@ -36,7 +36,7 @@ export default function HomePage() {
       const data = await fn(email, password);
       localStorage.setItem('dg_token', data.token);
       localStorage.setItem('dg_user', JSON.stringify(data.user));
-      router.push('/connections');
+      router.push('/dashboard');
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

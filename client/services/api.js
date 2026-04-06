@@ -46,6 +46,13 @@ export const getMe = async () => {
   return handleResponse(res);
 };
 
+// ─── Dashboard ─────────────────────────────────────────────────────
+
+export const getDashboard = async () => {
+  const res = await fetch(`${API_BASE}/api/dashboard`, { headers: getHeaders() });
+  return handleResponse(res);
+};
+
 // ─── Connections ───────────────────────────────────────────────────
 
 export const getConnections = async () => {

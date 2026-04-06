@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 import { getAlerts } from '../services/api';
 
 const NAV_ITEMS = [
+  { label: 'Dashboard', href: '/dashboard', icon: '🏠' },
+  { label: 'My Data', href: '/data-sources', icon: '📊' },
   { label: 'Connections', href: '/connections', icon: '🔌' },
-  { label: 'Data Sources', href: '/data-sources', icon: '📊' },
   { label: 'Uploads', href: '/uploads', icon: '📁' },
   { label: 'AI Analysis', href: '/analysis', icon: '🤖' },
   { label: 'Monitoring', href: '/monitoring', icon: '📡' },
