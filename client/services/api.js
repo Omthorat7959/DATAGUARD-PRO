@@ -161,6 +161,14 @@ export const analyzeProblems = async (uploadId, includeAI = true) => {
   return handleResponse(res);
 };
 
+export const approveFix = async (uploadId, problemType, column) => {
+  const res = await fetch(`${API_BASE}/api/analyze/approve-fix`, {
+    method: 'POST', headers: getHeaders(),
+    body: JSON.stringify({ uploadId, problemType, column }),
+  });
+  return handleResponse(res);
+};
+
 // ─── Monitoring ────────────────────────────────────────────────────
 
 export const startMonitoring = async (sourceId, schedule = 'daily') => {

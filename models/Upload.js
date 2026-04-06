@@ -49,6 +49,33 @@ const uploadSchema = new mongoose.Schema(
       default: [],
       // Stores first 100 rows for quick reference / preview
     },
+    originalData: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+      // Store all original, unmodified data
+    },
+    cleanedData: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+      // Store all data after fixes applied
+    },
+    originalValidationResults: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    currentValidationResults: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    fixesApplied: [
+      {
+        type: { type: String, required: true }, // Problem type (e.g., 'NULL_VALUES')
+        appliedAt: { type: Date, default: Date.now },
+        rowsAffected: { type: Number, default: 0 },
+        qualityBefore: { type: Number, default: 0 },
+        qualityAfter: { type: Number, default: 0 },
+      }
+    ],
   },
   {
     timestamps: true,

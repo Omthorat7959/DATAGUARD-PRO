@@ -74,10 +74,104 @@ router.post('/problems', auth, async (req, res) => {
         confidence: a.confidence,
         alternatives: a.alternativeFixes || [],
       })) || [],
+      fixesApplied: upload.fixesApplied || [],
+      currentQualityScore: upload.currentValidationResults?.qualityScore,
+      originalQualityScore: upload.originalValidationResults?.qualityScore,
     });
   } catch (error) {
     console.error('Analysis error:', error.message);
     res.status(500).json({ error: 'Analysis failed.', message: error.message });
+  }
+});
+
+// ─── POST /api/analyze/approve-fix ─────────────────────────────────
+const { executeFixOnData } = require('../services/fixExecutor');
+const { validateCSV } = require('../services/validator');
+
+router.post('/approve-fix', auth, async (req, res) => {
+  try {
+    const { uploadId, problemType, column } = req.body;
+
+    const upload = await Upload.findOne({
+      _id: uploadId,
+      userId: req.user._id
+    });
+
+    if (!upload) {
+      return res.status(404).json({ error: 'Upload not found or access denied.' });
+    }
+
+    const validationResults = await ValidationResult.findOne({
+      uploadId: uploadId,
+      validationType: { $regex: new RegExp(problemType, 'i') },
+      affectedColumns: column ? column : { $exists: true }
+    });
+
+    // Details for execution
+    const problem = validationResults ? validationResults.toObject() : { validationType: problemType, affectedColumns: [column] };
+
+    // Get current data (use cleaned if already fixed, else original)
+    // If neither exists, fallback to rawData (migration)
+    let currentData = upload.cleanedData?.length ? upload.cleanedData : 
+                      (upload.originalData?.length ? upload.originalData : upload.rawData);
+
+    // Execute fix on data
+    const { fixedData, changes } = await executeFixOnData(
+      currentData,
+      problemType,
+      problem
+    );
+
+    // Save cleaned data
+    upload.cleanedData = fixedData;
+    
+    // Re-validate the cleaned data
+    const newValidationReport = validateCSV(fixedData);
+    
+    // Format new results
+    const resultsSummary = {
+      qualityScore: newValidationReport.qualityScore,
+      totalProblems: newValidationReport.totalProblems,
+      durationMs: newValidationReport.durationMs,
+      problems: newValidationReport.validations.map(doc => ({
+        type: doc.type,
+        column: doc.columns?.[0] || null,
+        columns: doc.columns,
+        count: doc.count || doc.affectedRows,
+        severity: doc.severity || 'MEDIUM'
+      }))
+    };
+
+    // Store new validation results
+    const oldQualityScore = upload.currentValidationResults?.qualityScore || 0;
+    upload.currentValidationResults = resultsSummary;
+    
+    // Log this fix
+    upload.fixesApplied.push({
+      type: problemType,
+      appliedAt: new Date(),
+      rowsAffected: changes.rowsRemoved || changes.rowsModified || 0,
+      qualityBefore: oldQualityScore,
+      qualityAfter: newValidationReport.qualityScore
+    });
+
+    // Also clear out the specific old ValidationResult doc so it doesn't show up again
+    if (validationResults) {
+        await ValidationResult.deleteOne({ _id: validationResults._id });
+    }
+
+    await upload.save();
+
+    return res.json({
+      success: true,
+      oldQualityScore: oldQualityScore,
+      newQualityScore: newValidationReport.qualityScore,
+      rowsAffected: changes.rowsRemoved || changes.rowsModified || 0,
+      newValidationResults: resultsSummary
+    });
+  } catch (error) {
+    console.error('Approve fix error:', error);
+    res.status(500).json({ error: 'Failed to apply fix', message: error.message });
   }
 });
 

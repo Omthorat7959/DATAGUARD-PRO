@@ -87,6 +87,8 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
       columnNames,
       status: 'validating',
       rawData: rows.slice(0, 100), // Store first 100 rows for preview
+      originalData: rows,
+      cleanedData: rows,
     });
 
     await uploadRecord.save();
@@ -119,8 +121,26 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
       }
     }
 
-    // Update upload status to 'validated'
+    // Update upload status and validation results
     uploadRecord.status = 'validated';
+    
+    // Store original and current results
+    const resultsSummary = {
+      qualityScore: validationReport.qualityScore,
+      totalProblems: validationReport.totalProblems,
+      durationMs: validationReport.durationMs,
+      problems: validationDocs.map(doc => ({
+        type: doc.validationType,
+        column: doc.affectedColumns[0] || null,
+        columns: doc.affectedColumns,
+        count: doc.affectedRows,
+        severity: doc.severity
+      }))
+    };
+    
+    uploadRecord.originalValidationResults = resultsSummary;
+    uploadRecord.currentValidationResults = resultsSummary;
+    
     await uploadRecord.save();
 
     res.status(201).json({
@@ -191,14 +211,25 @@ router.get('/:id', auth, async (req, res) => {
       });
     }
 
-    // Fetch all validation results for this upload
+    // Fetch all validation results for this upload (these are the UNFIXED problems)
     const validationResults = await ValidationResult.find({
       uploadId: uploadRecord._id,
     });
 
+    const responseData = uploadRecord.toObject();
+    // Override rawData with cleanedData for preview if available
+    if (responseData.cleanedData && responseData.cleanedData.length > 0) {
+        responseData.rawData = responseData.cleanedData.slice(0, 100);
+    }
+    // Delete large arrays to avoid massive payloads
+    delete responseData.originalData;
+    delete responseData.cleanedData;
+
     res.json({
-      upload: uploadRecord,
+      upload: responseData,
       validations: validationResults,
+      currentResults: responseData.currentValidationResults,
+      fixesApplied: responseData.fixesApplied || []
     });
   } catch (error) {
     console.error('Get upload error:', error.message);

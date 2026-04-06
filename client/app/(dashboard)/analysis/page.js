@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getUploads, analyzeProblems } from '../../../services/api';
+import { getUploads, analyzeProblems, approveFix } from '../../../services/api';
 import ClaudeAnalysisCard from '../../../components/ClaudeAnalysisCard';
 
 export default function AnalysisPage() {
@@ -37,8 +37,20 @@ export default function AnalysisPage() {
     }
   };
 
-  const handleApprove = (analysis) => {
-    setApprovedFixes((prev) => new Set([...prev, analysis.problemType + ':' + analysis.column]));
+  const handleApprove = async (analysis) => {
+    try {
+      setLoading(true);
+      await approveFix(selectedUpload, analysis.problemType, analysis.column);
+      setApprovedFixes((prev) => new Set([...prev, analysis.problemType + ':' + analysis.column]));
+      
+      // Re-trigger analysis after applying the fix
+      const data = await analyzeProblems(selectedUpload, true);
+      setResult(data);
+    } catch (err) {
+      setError(err.message || 'Failed to approve fix.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleIgnore = (analysis) => {
@@ -46,7 +58,7 @@ export default function AnalysisPage() {
   };
 
   const totalProblems = result?.problems?.length || 0;
-  const totalApproved = [...approvedFixes].filter((k) => !k.startsWith('ignored:')).length;
+  const totalApproved = result?.fixesApplied?.length || 0;
   const totalIgnored = [...approvedFixes].filter((k) => k.startsWith('ignored:')).length;
 
   return (
@@ -134,6 +146,30 @@ export default function AnalysisPage() {
               </div>
             ))}
           </div>
+
+          {/* Fixes History & Improvement */}
+          {result.fixesApplied && result.fixesApplied.length > 0 && (
+            <div className="glass-card" style={{ padding: 24, marginBottom: 28, borderLeft: '4px solid var(--accent-green)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ margin: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>✨</span> Data Quality Improved
+                </h3>
+                {result.originalQualityScore && result.currentQualityScore && (
+                  <div className="badge badge-green" style={{ fontSize: '0.9rem', padding: '6px 12px' }}>
+                    Score: {result.originalQualityScore}% ➔ {result.currentQualityScore}%
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {result.fixesApplied.map((fix, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', background: 'var(--bg-secondary)', padding: '10px 16px', borderRadius: 8 }}>
+                    <span>Fixed <strong>{fix.type.replace('_', ' ')}</strong></span>
+                    <span style={{ color: 'var(--text-muted)' }}>{fix.rowsAffected} rows cleaned</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Analysis Cards */}
           {result.aiAnalysis && result.aiAnalysis.length > 0 ? (

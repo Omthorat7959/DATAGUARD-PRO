@@ -1,0 +1,16 @@
+id,name,email,age,salary
+1,John Doe,john@example.com,28,50000
+2,Jane Smith,jane@invalid,34,60000
+3,Bob Brown,bob@example.com,,45000
+4,Alice White,,29,48000
+5,Charlie Black,charlie@example.com,null,55000
+6,David Green,david@example.com,,52000
+7,Eve Blue,eve@example.com,31,999999
+8,Frank Red,frank@example.com,25,47000
+9,Frank Red,frank@example.com,25,47000
+10,Grace Yellow,grace@example.com,40,65000
+11,Heidi Pink,heidi@example.com,38,#REF!
+12,Ivan Orange,ivan@example.com,45,#N/A
+13,Judy Purple,judy@example.com,50,72000
+14,Mallory Gray,mallory@example.com,33,
+15,Victor Gold,victor@example.com,22,41000
