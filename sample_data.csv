@@ -1,0 +1,26 @@
+id,name,email,age,salary,department
+1,John Smith,john@example.com,28,55000,Engineering
+2,Jane Doe,jane@example.com,34,72000,Marketing
+3,Bob Wilson,,45,65000,Engineering
+4,Alice Brown,alice@example.com,31,68000,Sales
+5,Charlie Davis,charlie@example.com,29,52000,Engineering
+6,,mike@example.com,38,NULL,Marketing
+7,Sara Johnson,sara@example.com,27,48000,Support
+8,Tom Harris,invalid-email,33,71000,Engineering
+9,Lisa Wang,lisa@example.com,42,89000,Engineering
+10,David Lee,david@example.com,36,73000,Sales
+11,Emma Wilson,emma@example.com,25,45000,Marketing
+12,James Brown,james@example.com,55,95000,Engineering
+13,Olivia Taylor,olivia@example.com,31,67000,Sales
+14,Liam Anderson,liam@example.com,29,53000,Support
+15,Sophia Martinez,sophia@example.com,,62000,Marketing
+16,Noah Thomas,noah@example.com,33,999999,Engineering
+17,Isabella Jackson,isabella@example.com,28,51000,Sales
+18,Mason White,mason@example.com,NULL,47000,Support
+19,Ava Harris,ava@example.com,35,70000,Engineering
+20,Ethan Martin,#REF!,40,75000,Marketing
+21,John Smith,john@example.com,28,55000,Engineering
+22,Mia Thompson,mia@example.com,26,aaaaaa,Sales
+23,Alexander Garcia,alex@example.com,37,78000,Engineering
+24,Charlotte Robinson,charlotte@example.com,44,82000,Marketing
+25,Benjamin Clark,ben@example.com,32,61000,Support
