@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: 'Monitoring', href: '/monitoring', icon: '📡' },
   { label: 'Alerts', href: '/alerts', icon: '🔔', showBadge: true },
   { label: 'Team', href: '/team', icon: '👥' },
+  { label: 'Settings', href: '/settings', icon: '⚙️' },
 ];
 
 export default function Sidebar() {

@@ -250,3 +250,64 @@ export const removeTeamMember = async (sourceId, email) => {
   });
   return handleResponse(res);
 };
+
+// ─── Settings ──────────────────────────────────────────────────────
+
+export const getProfile = async () => {
+  const res = await fetch(`${API_BASE}/api/settings/profile`, { headers: getHeaders() });
+  return handleResponse(res);
+};
+
+export const updateProfile = async (data) => {
+  const res = await fetch(`${API_BASE}/api/settings/profile`, {
+    method: 'POST', headers: getHeaders(), body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+};
+
+export const changePassword = async (currentPassword, newPassword, confirmPassword) => {
+  const res = await fetch(`${API_BASE}/api/settings/password`, {
+    method: 'POST', headers: getHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+  });
+  return handleResponse(res);
+};
+
+export const generateApiKeyRequest = async (name) => {
+  const res = await fetch(`${API_BASE}/api/settings/api-keys/generate`, {
+    method: 'POST', headers: getHeaders(), body: JSON.stringify({ name }),
+  });
+  return handleResponse(res);
+};
+
+export const listApiKeys = async () => {
+  const res = await fetch(`${API_BASE}/api/settings/api-keys`, { headers: getHeaders() });
+  return handleResponse(res);
+};
+
+export const deleteApiKey = async (keyId) => {
+  const res = await fetch(`${API_BASE}/api/settings/api-keys/${keyId}`, {
+    method: 'DELETE', headers: getHeaders(),
+  });
+  return handleResponse(res);
+};
+
+export const revokeApiKey = async (keyId) => {
+  const res = await fetch(`${API_BASE}/api/settings/api-keys/${keyId}/revoke`, {
+    method: 'POST', headers: getHeaders(),
+  });
+  return handleResponse(res);
+};
+
+export const getUsageStats = async () => {
+  const res = await fetch(`${API_BASE}/api/settings/usage`, { headers: getHeaders() });
+  return handleResponse(res);
+};
+
+export const deleteAccount = async (confirmPassword) => {
+  const res = await fetch(`${API_BASE}/api/settings/account`, {
+    method: 'DELETE', headers: getHeaders(),
+    body: JSON.stringify({ confirmPassword }),
+  });
+  return handleResponse(res);
+};

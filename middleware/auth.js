@@ -1,27 +1,33 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { verifyApiKey, API_KEY_PREFIX } = require('../services/apiKeyManager');
 
 /**
  * JWT Authentication Middleware
  * Extracts token from "Authorization: Bearer TOKEN" header,
  * verifies the signature, and attaches the user to req.user.
  *
- * Returns 401 if token is missing or invalid.
- * Returns 403 if token is expired.
+ * Also supports API key authentication via "X-API-Key" header
+ * for programmatic access (e.g., CLI uploads).
  */
 const auth = async (req, res, next) => {
   try {
-    // Extract the Authorization header
+    // ─── Try API Key first ──────────────────────────────────
+    const apiKeyHeader = req.headers['x-api-key'];
+    if (apiKeyHeader && apiKeyHeader.startsWith(API_KEY_PREFIX)) {
+      return authenticateApiKey(apiKeyHeader, req, res, next);
+    }
+
+    // ─── JWT Bearer Token ───────────────────────────────────
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         error: 'Access denied. No token provided.',
-        message: 'Please include a valid Bearer token in the Authorization header.',
+        message: 'Include a Bearer token or X-API-Key header.',
       });
     }
 
-    // Extract the token from "Bearer <token>"
     const token = authHeader.split(' ')[1];
 
     if (!token) {
@@ -31,12 +37,10 @@ const auth = async (req, res, next) => {
       });
     }
 
-    // Verify the token signature and decode payload
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (jwtError) {
-      // Differentiate between expired and invalid tokens
       if (jwtError.name === 'TokenExpiredError') {
         return res.status(403).json({
           error: 'Token expired.',
@@ -51,7 +55,6 @@ const auth = async (req, res, next) => {
       });
     }
 
-    // Look up the user from the decoded token payload
     const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
@@ -61,7 +64,6 @@ const auth = async (req, res, next) => {
       });
     }
 
-    // Attach the user to the request object for downstream handlers
     req.user = user;
     next();
   } catch (error) {
@@ -72,5 +74,48 @@ const auth = async (req, res, next) => {
     });
   }
 };
+
+/**
+ * Authenticate via X-API-Key header.
+ * Iterates through user's stored API keys and checks for a match.
+ */
+async function authenticateApiKey(plainKey, req, res, next) {
+  try {
+    // Find all users that have active API keys (limited to avoid full table scan)
+    const users = await User.find({
+      'apiKeys.isActive': true,
+    }).select('+password'); // Need the full doc for apiKeys
+
+    for (const user of users) {
+      for (const keyDoc of user.apiKeys) {
+        if (!keyDoc.isActive) continue;
+        const match = await verifyApiKey(plainKey, keyDoc.keyHash);
+        if (match) {
+          // Update last-used timestamp
+          keyDoc.lastUsedAt = new Date();
+          await user.save();
+
+          // Strip password before attaching
+          const userObj = user.toObject();
+          delete userObj.password;
+          req.user = userObj;
+          req.authMethod = 'api_key';
+          return next();
+        }
+      }
+    }
+
+    return res.status(401).json({
+      error: 'Invalid API key.',
+      message: 'The provided API key is invalid or has been revoked.',
+    });
+  } catch (error) {
+    console.error('API key auth error:', error.message);
+    return res.status(500).json({
+      error: 'Authentication error.',
+      message: 'Failed to verify API key.',
+    });
+  }
+}
 
 module.exports = auth;

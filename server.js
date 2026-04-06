@@ -26,6 +26,7 @@ const monitoringRoutes = require('./routes/monitoring');
 const teamRoutes = require('./routes/team');
 const alertRoutes = require('./routes/alerts');
 const dashboardRoutes = require('./routes/dashboard');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -89,6 +90,7 @@ app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // ─── 404 Handler ───────────────────────────────────────────────────
 
