@@ -11,6 +11,7 @@ export default function AnalysisPage() {
   const [loadingUploads, setLoadingUploads] = useState(true);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [approvedFixes, setApprovedFixes] = useState(new Set());
 
   useEffect(() => {
@@ -40,12 +41,28 @@ export default function AnalysisPage() {
   const handleApprove = async (analysis) => {
     try {
       setLoading(true);
-      await approveFix(selectedUpload, analysis.problemType, analysis.column);
+      setError('');
+      setSuccessMsg('');
+      const fixResponse = await approveFix(selectedUpload, analysis.problemType, analysis.column);
       setApprovedFixes((prev) => new Set([...prev, analysis.problemType + ':' + analysis.column]));
       
-      // Re-trigger analysis after applying the fix
-      const data = await analyzeProblems(selectedUpload, true);
-      setResult(data);
+      // Update React state with fresh data directly from analysis endpoint (rule engine evaluation)
+      const data = await analyzeProblems(selectedUpload, false);
+      
+      // Preserve existing aiAnalysis, except for the fixed one
+      const remainingAiAnalysis = result?.aiAnalysis 
+        ? result.aiAnalysis.filter(a => !(a.problemType === analysis.problemType && a.column === analysis.column)) 
+        : [];
+      
+      setResult({
+        ...data,
+        aiAnalysis: remainingAiAnalysis, // keep AI context for remaining problems
+      });
+      
+      // Show success message
+      setSuccessMsg(`✨ Fix Applied! Quality improved from ${fixResponse.oldQualityScore}% to ${fixResponse.newQualityScore}%. Cleaned ${fixResponse.rowsAffected || 0} rows.`);
+      
+      setTimeout(() => setSuccessMsg(''), 5000);
     } catch (err) {
       setError(err.message || 'Failed to approve fix.');
     } finally {
@@ -112,6 +129,7 @@ export default function AnalysisPage() {
       </div>
 
       {error && <div className="alert alert-error" style={{ marginBottom: 20 }}>❌ {error}</div>}
+      {successMsg && <div className="alert alert-success animate-fade-in" style={{ marginBottom: 20 }}>{successMsg}</div>}
 
       {/* Loading state */}
       {loading && (
