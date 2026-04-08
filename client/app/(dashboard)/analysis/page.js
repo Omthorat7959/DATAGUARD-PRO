@@ -145,6 +145,24 @@ export default function AnalysisPage() {
       {/* Results */}
       {result && !loading && (
         <>
+          {/* How This Works Banner */}
+          <div style={{
+            background: 'rgba(59, 130, 246, 0.1)', borderLeft: '4px solid #3b82f6', 
+            padding: '16px 20px', marginBottom: 24, borderRadius: '0 8px 8px 0'
+          }}>
+            <h3 style={{ margin: '0 0 8px', fontWeight: 700, color: '#1e3a8a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>ℹ️</span> How This Works
+            </h3>
+            <div style={{ color: '#1e40af', fontSize: '0.85rem', lineHeight: 1.6 }}>
+              <ol style={{ margin: 0, paddingLeft: 20 }}>
+                <li><strong>"Analyze with AI"</strong> button shows what Claude thinks about the problem</li>
+                <li><strong>"Approve & Fix"</strong> button ACTUALLY MODIFIES the original file and improves quality</li>
+                <li>After fixing, the problem is removed from the list</li>
+                <li>Click again to see remaining problems</li>
+              </ol>
+            </div>
+          </div>
+
           {/* Summary stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
             {[

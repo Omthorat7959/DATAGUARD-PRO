@@ -139,18 +139,30 @@ export default function ClaudeAnalysisCard({ problem, analysis, onApprove, onIgn
       )}
 
       {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-        {onIgnore && (
+      {onApprove && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, marginTop: 10 }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {onIgnore && (
+              <button className="btn btn-secondary btn-sm" onClick={() => onIgnore(analysis)}>
+                🚫 Ignore
+              </button>
+            )}
+            <button className="btn btn-success btn-sm" style={{ fontWeight: 'bold' }} onClick={() => onApprove(analysis)}>
+              ✅ Approve & Fix This Problem
+            </button>
+          </div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+            Clicking this will modify the original file and improve quality score
+          </p>
+        </div>
+      )}
+      {!onApprove && onIgnore && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
           <button className="btn btn-secondary btn-sm" onClick={() => onIgnore(analysis)}>
             🚫 Ignore
           </button>
-        )}
-        {onApprove && (
-          <button className="btn btn-success btn-sm" onClick={() => onApprove(analysis)}>
-            ✅ Approve Fix
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
