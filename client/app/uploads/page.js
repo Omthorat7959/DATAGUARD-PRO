@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getUploads, getUpload } from '../../../services/api';
+import { getUploads, getUpload } from '../../services/api';
 
 export default function UploadsPage() {
   const [uploads, setUploads] = useState([]);
