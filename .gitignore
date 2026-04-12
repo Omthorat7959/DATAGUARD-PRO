@@ -31,7 +31,7 @@ test_all.js
 test_detail.js
 
 # Uploads folder (user data)
-uploads/
+/uploads/
 
 # Logs
 *.log
