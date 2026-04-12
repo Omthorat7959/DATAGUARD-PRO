@@ -173,25 +173,16 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
   }
 });
 
-// ─── GET /api/uploads ──────────────────────────────────────────────
-// Return the authenticated user's recent uploads (limit 10).
+// ─── GET /api/upload ──────────────────────────────────────────────
+// GET all uploads for current user
 router.get('/', auth, async (req, res) => {
   try {
-    const uploads = await Upload.find({ userId: req.user._id })
-      .sort({ uploadedAt: -1 })
-      .limit(10)
-      .select('-rawData'); // Exclude raw data from list view for performance
-
-    res.json({
-      uploads,
-      count: uploads.length,
-    });
+    const uploads = await Upload.find({ userId: req.user.id })
+      .sort({ createdAt: -1 });
+    res.json({ uploads });
   } catch (error) {
-    console.error('List uploads error:', error.message);
-    res.status(500).json({
-      error: 'Server error.',
-      message: 'An error occurred while fetching uploads.',
-    });
+    console.error('Error fetching uploads:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
